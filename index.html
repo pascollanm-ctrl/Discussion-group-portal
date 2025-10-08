@@ -3,63 +3,151 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JKUAT Discussion Group</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Discussion Group Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f0fe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      width: 350px;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    h2 {
+      text-align: center;
+      color: #0a66c2;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #0a66c2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #004a99;
+    }
+    .toggle {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .toggle a {
+      color: #0a66c2;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <div id="login-page" class="centered">
+  <div class="container">
     <h2>Discussion Group Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-    <p id="login-message"></p>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPwd" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" style="display:none;">
+      <input type="email" id="regEmail" placeholder="New Email" required />
+      <input type="password" id="regPwd" placeholder="New Password" required />
+      <button type="submit">Register</button>
+    </form>
+
+    <div class="toggle">
+      <p id="switchToRegister">Don't have an account? <a>Register</a></p>
+      <p id="switchToLogin" style="display:none;">Already have an account? <a>Login</a></p>
+    </div>
   </div>
 
-  <div id="dashboard" class="hidden">
-    <header>
-      <h1>JKUAT Discussion Group Portal</h1>
-      <button id="logoutBtn">Logout</button>
-    </header>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 
-    <section>
-      <h2>🎯 Objectives</h2>
-      <ul id="objectives-list"></ul>
-    </section>
+    // 🔥 Replace these placeholders with your Firebase project settings
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    <section>
-      <h2>🏆 Achievements</h2>
-      <ul id="achievements-list"></ul>
-    </section>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    <section>
-      <h2>📢 Announcements</h2>
-      <textarea id="announcement" placeholder="Write announcement..."></textarea>
-      <button id="postAnnouncement">Post</button>
-      <div id="announcement-list"></div>
-    </section>
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const switchToRegister = document.getElementById("switchToRegister");
+    const switchToLogin = document.getElementById("switchToLogin");
 
-    <section>
-      <h2>📚 Notes Upload</h2>
-      <input type="text" id="notesUnit" placeholder="Unit name..." />
-      <input type="file" id="notesFile" />
-      <button id="uploadNotes">Upload Notes</button>
-      <ul id="notes-list"></ul>
-    </section>
+    switchToRegister.addEventListener("click", () => {
+      loginForm.style.display = "none";
+      registerForm.style.display = "block";
+      switchToRegister.style.display = "none";
+      switchToLogin.style.display = "block";
+    });
 
-    <section>
-      <h2>📄 Past Papers Upload</h2>
-      <input type="text" id="papersUnit" placeholder="Unit name..." />
-      <input type="file" id="papersFile" />
-      <button id="uploadPaper">Upload Paper</button>
-      <ul id="papers-list"></ul>
-    </section>
-  </div>
+    switchToLogin.addEventListener("click", () => {
+      loginForm.style.display = "block";
+      registerForm.style.display = "none";
+      switchToRegister.style.display = "block";
+      switchToLogin.style.display = "none";
+    });
 
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="script.js"></script>
+    // 🔹 Login Function
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPwd").value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ Login successful!");
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        alert("❌ Login Failed: " + error.message);
+      }
+    });
+
+    // 🔹 Register Function
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPwd").value;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("✅ Registration successful! You can now log in.");
+        registerForm.reset();
+        loginForm.style.display = "block";
+        registerForm.style.display = "none";
+        switchToRegister.style.display = "block";
+        switchToLogin.style.display = "none";
+      } catch (error) {
+        alert("❌ Registration Failed: " + error.message);
+      }
+    });
+  </script>
 </body>
 </html>
